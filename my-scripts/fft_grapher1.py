@@ -6,6 +6,15 @@ from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, Q
 from PySide6.QtCore import QTimer
 import pyqtgraph as pg
 
+'''
+Required format:
+- Serial data packets start with a start flag (0xAA)
+- Followed by 2 bytes for number of FFT bins (little endian)
+- Followed by 2 bytes for sample frequency (little endian)
+- Then the FFT magnitude data only for each bin (2 bytes each, little endian)
+- End with an end flag (0x55)
+'''
+
 COM_PORT = "COM8"
 BAUD_RATE = 115200
 

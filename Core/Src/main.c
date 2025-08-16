@@ -22,9 +22,18 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdio.h>
-#include "arm_math.h"
-#include "math.h"
+#include "app_config.h"
+#include "globals.h"
+
+#ifdef MODE_RFFT
+#include "mode_rfft.h"
+#endif
+#ifdef MODE_CFFT
+#include "mode_cfft.h"
+#endif
+#ifdef MODE_CEPSTRUM
+#include "mode_cepstrum.h"
+#endif
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -92,134 +101,15 @@ static void MX_DAC_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
-void procData(volatile uint16_t adc_buf[], int st_idx);
-void printDataDMA(uint16_t *magnitude);
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
 PUTCHAR_PROTOTYPE
 {
   HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
   return ch;
 }
+/* USER CODE END PFP */
 
-#define TIM_CLK        96000000
-#define SAMPLE_FREQ    40000
-#define DAC_BUF_LEN    1024
-#define ADC_BUF_LEN    2048
-#define FFT_SIZE       (ADC_BUF_LEN/2)    // 1024
-#define NUM_BINS       (FFT_SIZE/2)       // 512
-#define UART_BUF_LEN   (NUM_BINS * 6 + 50) // Room for formatting "Start ...", spaces, values, CRLF
-
-volatile uint16_t adc_buf[ADC_BUF_LEN];
-volatile uint16_t dac_buf[DAC_BUF_LEN];
-
-static arm_rfft_fast_instance_f32 fft_instance;
-static uint8_t fft_initialized = 0;
-
-static uint8_t uart3_busy = 0;
-
-// Double buffers for UART DMA transmission
-static uint8_t uart_buf[2][UART_BUF_LEN];
-static uint8_t uart_buf_index_tx = 0;   // buffer currently being transmitted
-static uint8_t uart_buf_index_fill = 1; // buffer being filled
-
-// ADC DMA half complete callback
-void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef *hadc) {
-    if (hadc->Instance == ADC1) {
-        procData(adc_buf, 0);
-    }
-}
-
-// ADC DMA full complete callback
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-    if (hadc->Instance == ADC1) {
-        procData(adc_buf, (ADC_BUF_LEN / 2));
-    }
-}
-
-// UART DMA transmit complete callback
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-    if (huart->Instance == USART3) {
-        uart3_busy = 0;
-
-        // Swap TX and fill buffer indices for next transmission
-        uart_buf_index_tx = uart_buf_index_fill;
-        uart_buf_index_fill = 1 - uart_buf_index_tx;
-    }
-}
-
-// FFT processing and UART buffer filling
-void procData(volatile uint16_t *adc_data, int st_idx) {
-
-    float input[FFT_SIZE];
-    float output[FFT_SIZE];
-    float mag_f32[NUM_BINS];
-    static uint16_t mag_u16[NUM_BINS];
-
-    // Convert ADC samples to normalized float values [0..1)
-    for (int i = 0; i < FFT_SIZE; i++) {
-        input[i] = (float)(adc_data[st_idx + i]) / 4096.0f;
-    }
-
-    if (!fft_initialized) {
-        arm_rfft_fast_init_f32(&fft_instance, FFT_SIZE);
-        fft_initialized = 1;
-    }
-
-    arm_rfft_fast_f32(&fft_instance, input, output, 0);
-
-    arm_cmplx_mag_f32(output, mag_f32, NUM_BINS);
-
-    // Scale magnitudes to 16-bit unsigned ints (e.g., scale factor = 1000)
-    for (int i = 0; i < NUM_BINS; i++) {
-        float scaled = mag_f32[i] * 1000.0f;
-        if (scaled > 65535.0f) scaled = 65535.0f;
-        mag_u16[i] = (uint16_t)scaled;
-    }
-
-    // Format and prepare UART buffer for DMA transfer
-    printDataDMA(mag_u16);
-}
-
-void printDataDMA(uint16_t *magnitude)
-{
-    // Pointer to the current fill buffer in our 2-buffer system
-    uint8_t *fill_buf = uart_buf[uart_buf_index_fill];
-    int len = 0;
-
-    // Example header (optional) - 2 bytes: marker and bin count
-    // You can define any binary header structure you want
-    fill_buf[len++] = 0xAA;                   // Start byte marker
-    fill_buf[len++] = (uint8_t)(NUM_BINS & 0xFF);      // Number of bins
-    fill_buf[len++] = (uint8_t)((NUM_BINS >> 8) & 0xFF);
-    fill_buf[len++] = (uint8_t)(SAMPLE_FREQ & 0xFF); //Sampling frequency
-    fill_buf[len++] = (uint8_t)((SAMPLE_FREQ >> 8) & 0xFF);
-
-
-    // Copy raw uint16_t magnitudes into buffer (little-endian)
-    for (int i = 0; i < NUM_BINS; i++) {
-        fill_buf[len++] = (uint8_t)(magnitude[i] & 0xFF);       // LSB
-        fill_buf[len++] = (uint8_t)((magnitude[i] >> 8) & 0xFF); // MSB
-    }
-
-    // Optional: append end marker
-    fill_buf[len++] = 0x55;
-
-    // Start UART DMA transmit if not already busy
-    if (!uart3_busy) {
-        uart3_busy = 1;
-
-        // Swap buffer indices: the fill buffer becomes tx buffer
-        uart_buf_index_tx   = uart_buf_index_fill;
-        uart_buf_index_fill = 1 - uart_buf_index_tx;
-
-        HAL_UART_Transmit_DMA(&huart3, fill_buf, len);
-    }
-    // If busy, the frame will remain in fill buffer until callback swaps it
-    return;
-}
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
 
 
 /* USER CODE END 0 */
@@ -232,11 +122,6 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	for (int n = 0; n < DAC_BUF_LEN; n++) {
-		float angle = 2.0f * M_PI * 5000 * n / 40000;
-	    float value = (sin(angle) + 1.0f) * (4095 / 2.0f);
-	    dac_buf[n] = (uint16_t)value;
-	}
 
   /* USER CODE END 1 */
 
@@ -267,10 +152,12 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_TIM_Base_Start(&htim2);
-
-  HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*) dac_buf, DAC_BUF_LEN, DAC_ALIGN_12B_R);
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_buf, ADC_BUF_LEN);
+#ifdef MODE_RFFT
+  RFFT_Init();
+#endif
+#ifdef MODE_CFFT
+  CFFT_Init();
+#endif
 
   /* USER CODE END 2 */
 
@@ -687,38 +574,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
-// Formatting FFT magnitude data into UART tx buffer using double buffering
-/*void printDataDMA(uint16_t *magnitude) {
-
-    uint8_t *fill_buf = uart_buf[uart_buf_index_fill];
-    int len = 0;
-
-    // Header: "Start NUM_BINS SAMPLE_FREQ"
-    len += snprintf((char *)fill_buf + len, UART_BUF_LEN - len,
-                    "Start %d %d", NUM_BINS, SAMPLE_FREQ);
-
-    // Append magnitude values as unsigned decimal strings separated by spaces
-    for (int i = 0; i < NUM_BINS; i++) {
-        len += snprintf((char *)fill_buf + len, UART_BUF_LEN - len,
-                        " %u", magnitude[i]);
-    }
-
-    // Append carriage return and newline
-    len += snprintf((char *)fill_buf + len, UART_BUF_LEN - len, "\r\n");
-
-    // Start UART DMA transmit if not already busy
-    if (!uart3_busy) {
-        uart3_busy = 1;
-
-        // Swap buffer indices: the fill buffer becomes tx buffer
-        uart_buf_index_tx = uart_buf_index_fill;
-        uart_buf_index_fill = 1 - uart_buf_index_tx;
-
-        HAL_UART_Transmit_DMA(&huart3, fill_buf, len);
-    }
-    // If UART busy: the next frame will be sent after current transmission completes
-}*/
 
 /* USER CODE END 4 */
 

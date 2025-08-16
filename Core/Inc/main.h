@@ -31,11 +31,17 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
+#include "arm_math.h"
+#include "math.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+extern ADC_HandleTypeDef hadc1;
+extern DAC_HandleTypeDef hdac;
+extern TIM_HandleTypeDef htim2;
+extern UART_HandleTypeDef huart3;
 
 /* USER CODE END ET */
 
