@@ -16,8 +16,8 @@
  * MODE_CEPSTRUM: Transmits Cepstral analysis data
  * */
 
-#define MODE_RFFT
+//#define MODE_RFFT
 //#define MODE_CFFT
-//#define MODE_CEPSTRUM
+#define MODE_CEPSTRUM
 
 #endif /* INC_APP_CONFIG_H_ */

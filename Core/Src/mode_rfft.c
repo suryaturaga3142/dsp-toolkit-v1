@@ -8,7 +8,7 @@
 #include "main.h"
 #include "mode_rfft.h"
 
-volatile uint16_t dac_buf[DAC_BUF_LEN];
+//volatile uint16_t dac_buf[DAC_BUF_LEN];
 
 static arm_rfft_fast_instance_f32 fft_instance;
 

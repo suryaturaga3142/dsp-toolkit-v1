@@ -16,6 +16,7 @@
 #define ADC_BUF_LEN    2048
 
 extern volatile uint16_t adc_buf[ADC_BUF_LEN];
+extern volatile uint16_t dac_buf[DAC_BUF_LEN];
 extern volatile uint8_t uart3_busy;
 extern volatile uint8_t uart_buf_index_tx;   // buffer currently being transmitted
 extern volatile uint8_t uart_buf_index_fill; // buffer being filled

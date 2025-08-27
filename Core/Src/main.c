@@ -158,6 +158,9 @@ int main(void)
 #ifdef MODE_CFFT
   CFFT_Init();
 #endif
+#ifdef MODE_CEPSTRUM
+  Cepstrum_Init();
+#endif
 
   /* USER CODE END 2 */
 

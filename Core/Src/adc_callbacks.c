@@ -79,4 +79,28 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 
 #ifdef MODE_CEPSTRUM
 
+void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc) {
+    if(hadc->Instance == ADC1) {
+    	Cepstrum_procData(adc_buf, 0);
+    }
+}
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
+    if(hadc->Instance == ADC1) {
+    	Cepstrum_procData(adc_buf, FFT_SIZE);
+    }
+}
+
+// UART DMA transmit complete callback
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == USART3) {
+        uart3_busy = 0;
+
+        // Swap TX and fill buffer indices for next transmission
+        uart_buf_index_tx = uart_buf_index_fill;
+        uart_buf_index_fill = 1 - uart_buf_index_tx;
+    }
+}
+
+
 #endif

@@ -16,7 +16,6 @@
 #define UART_BUF_LEN   (NUM_BINS * 6 + 50) // Room for formatting "Start ...", spaces, values, CRLF
 
 void RFFT_Init(void);
-
 void RFFT_procData(volatile uint16_t adc_buf[], int st_idx);
 void RFFT_printDataDMA(uint16_t *magnitude);
 
