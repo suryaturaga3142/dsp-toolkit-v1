@@ -34,6 +34,9 @@
 #ifdef MODE_CEPSTRUM
 #include "mode_cepstrum.h"
 #endif
+#ifdef MODE_HILBERT
+#include "mode_hilbert.h"
+#endif
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -160,6 +163,9 @@ int main(void)
 #endif
 #ifdef MODE_CEPSTRUM
   Cepstrum_Init();
+#endif
+#ifdef MODE_HILBERT
+  Hilbert_Init();
 #endif
 
   /* USER CODE END 2 */

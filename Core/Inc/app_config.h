@@ -18,6 +18,7 @@
 
 //#define MODE_RFFT
 //#define MODE_CFFT
-#define MODE_CEPSTRUM
+//#define MODE_CEPSTRUM
+#define MODE_HILBERT
 
 #endif /* INC_APP_CONFIG_H_ */
