@@ -15,24 +15,7 @@ static float hann_window[FFT_SIZE];
 
 void Hilbert_Init(void) {
 
-    // --- Generate a linear chirp signal for testing (sweeps from f_start to f_end) ---
-    // This is a great test for instantaneous frequency.
-    float f_start = 1000.0f; // 1 kHz
-    float f_end = 8000.0f;   // 8 kHz
-    float sweep_time_s = (float)DAC_BUF_LEN / SAMPLE_FREQ;
-    float k = (f_end - f_start) / sweep_time_s; // Chirp rate in Hz/s
-    float current_phase = 0.0f;
-
-    for (int n = 0; n < DAC_BUF_LEN; n++) {
-        float t = (float)n / SAMPLE_FREQ;
-        // Instantaneous frequency at time t
-        float inst_freq = f_start + k * t;
-        // Increment phase based on instantaneous frequency
-        current_phase += 2.0f * M_PI * inst_freq / SAMPLE_FREQ;
-        // Generate signal
-        float chirp_signal = sinf(current_phase);
-        dac_buf[n] = (uint16_t)((chirp_signal * 2047.0f) + 2048.0f);
-    }
+    Wavegen_Init(dac_buf);
 
     // --- Initialize Hann window coefficients ---
     for (int i = 0; i < FFT_SIZE; i++) {

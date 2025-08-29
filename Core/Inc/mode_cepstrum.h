@@ -9,8 +9,8 @@
 #define INC_MODE_CEPSTRUM_H_
 
 #include "arm_math.h"
-#include "app_config.h"
 #include "globals.h"
+#include "wavegen.h"
 
 #define FFT_SIZE       (ADC_BUF_LEN/2)    // 1024
 #define NUM_BINS       (FFT_SIZE/2)       // 512

@@ -20,15 +20,7 @@ static float hann_window[FFT_SIZE];
 
 void RFFT_Init(void) {
 
-	float freq[6] = {100, 400, 5000, 9000, 14000, 18000};
-	float phase[6] = {0, 0.3, 0.2, 0.1, 0.8};
-	for (int n = 0; n < DAC_BUF_LEN; n++) {
-		float value = 0;
-		for (int i = 0; i < 6; i++) {
-			value += (4095 / 2.0f / 6.0f) * (sin( 2.0f * M_PI * ( freq[i] * n / SAMPLE_FREQ + phase[i] ) ) + 1.0f);
-		}
-		dac_buf[n] = (uint16_t) value;
-	}
+	Wavegen_Init(dac_buf);
 
 	for (int i = 0; i < FFT_SIZE; i++) {
 		 hann_window[i] = 0.5f * (1.0f - cosf((2.0f * M_PI * i) / (FFT_SIZE - 1)));

@@ -10,6 +10,7 @@
 
 #include "main.h"
 #include "globals.h"
+#include "wavegen.h"
 
 #define FFT_SIZE       ADC_BUF_LEN    // 2048
 #define NUM_BINS       FFT_SIZE       // 2048 bc no Nyquist

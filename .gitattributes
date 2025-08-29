@@ -1,0 +1,36 @@
+# --- Git Attributes for STM32 DSP Toolkit ---
+
+# Set the default behavior for all files to be text, auto-detected,
+# and use LF line endings. This is the main rule for cross-platform consistency.
+* text=auto eol=lf
+
+#
+# --- Windows-Specific Exceptions ---
+#
+# These files require CRLF line endings to run correctly on Windows.
+*.bat     text eol=crlf
+*.cmd     text eol=crlf
+
+#
+# --- Explicitly Binary Files ---
+#
+# Mark common binary file types as binary. This prevents Git from
+# attempting to normalize their line endings, which would corrupt them.
+# Add any other binary types specific to your project.
+*.png     -text
+*.jpg     -text
+*.jpeg    -text
+*.gif     -text
+*.ico     -text
+*.pdf     -text
+*.zip     -text
+
+# STM32/Compiler specific binary files
+*.elf     -text
+*.bin     -text
+*.hex     -text
+*.a       -text
+*.o       -text
+*.so      -text
+*.lib     -text
+*.dll     -text

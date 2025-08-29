@@ -10,6 +10,7 @@
 
 #include "main.h"
 #include "globals.h"
+#include "wavegen.h"
 
 #define FFT_SIZE       (ADC_BUF_LEN/2)    // 1024
 #define NUM_BINS       (FFT_SIZE/2)       // 512
